@@ -2,6 +2,7 @@
 import { cn } from "~/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";
+import { useTheme } from "next-themes";
 
 export const WavyBackground = ({
   children,
@@ -35,6 +36,8 @@ export const WavyBackground = ({
     ctx: any,
     canvas: any;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { resolvedTheme } = useTheme();
+
   const getSpeed = () => {
     switch (speed) {
       case "slow":
@@ -85,7 +88,7 @@ export const WavyBackground = ({
 
   let animationId: number;
   const render = () => {
-    ctx.fillStyle = backgroundFill || "black";
+    ctx.fillStyle = backgroundFill || (resolvedTheme === "dark" ? "black" : "white");
     ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
     drawWave(5);
@@ -97,7 +100,7 @@ export const WavyBackground = ({
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [resolvedTheme]); // Re-init when theme changes
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
@@ -112,12 +115,12 @@ export const WavyBackground = ({
   return (
     <div
       className={cn(
-        "h-screen flex flex-col items-center justify-center",
+        "h-screen flex flex-col items-center justify-center bg-white dark:bg-black",
         containerClassName
       )}
     >
       <canvas
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 hidden sm:block"
         ref={canvasRef}
         id="canvas"
         style={{
@@ -130,3 +133,4 @@ export const WavyBackground = ({
     </div>
   );
 };
+

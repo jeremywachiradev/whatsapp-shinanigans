@@ -46,10 +46,12 @@ export function PostAdButton() {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Hold up! 🛑</AlertDialogTitle>
+          <AlertDialogTitle>Hold up</AlertDialogTitle>
           <AlertDialogDescription>
-            To prevent the internet from exploding (and for DDoS protection 🛡️), you need to log in to post an ad.
+            To protect myself from your mum you need to log in to post an ad.
+
             <br />
+            Apart from firewall ya vercel na basic data protection ikiingia kwa server sina protection ingine. Msinihack tafadhali
             <br />
             Don't worry, it's quick and painless!
           </AlertDialogDescription>

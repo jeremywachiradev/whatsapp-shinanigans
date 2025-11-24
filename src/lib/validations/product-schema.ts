@@ -53,14 +53,17 @@ const baseSchema = z.object({
 })
 
 // Category Specific Schemas
-export const laptopComputerSchema = baseSchema.extend({
-  category: z.literal("Electronics"),
+export const CategoryEnum = z.enum(["Electronics", "Fashion & Accessories"])
+
+// Category Specific Schemas (Raw Objects for Discriminated Union)
+const rawLaptopSchema = baseSchema.extend({
+  category: CategoryEnum,
   subcategory: z.literal("Laptops & Computers"),
   type: ComputerTypeEnum,
   brand: LaptopBrandEnum,
-  laptopSubtype: LaptopSubtypeEnum.optional(),
-  desktopSubtype: DesktopSubtypeEnum.optional(),
-  serverSubtype: ServerSubtypeEnum.optional(),
+  laptopSubtype: z.union([LaptopSubtypeEnum, z.literal("")]).optional().transform(val => val === "" ? undefined : val),
+  desktopSubtype: z.union([DesktopSubtypeEnum, z.literal("")]).optional().transform(val => val === "" ? undefined : val),
+  serverSubtype: z.union([ServerSubtypeEnum, z.literal("")]).optional().transform(val => val === "" ? undefined : val),
   model: z.string().optional(),
   condition: ConditionEnum,
   processorType: z.string().min(1, "Processor type is required"),
@@ -73,31 +76,23 @@ export const laptopComputerSchema = baseSchema.extend({
   graphicsCardMemory: z.string().optional(),
   operatingSystem: OperatingSystemEnum,
   color: z.string().min(1, "Color is required"),
-}).refine((data) => {
-  if (data.type === "LAPTOP" && !data.laptopSubtype) return false;
-  if (data.type === "DESKTOP" && !data.desktopSubtype) return false;
-  if (data.type === "SERVER" && !data.serverSubtype) return false;
-  return true;
-}, {
-  message: "Subtype is required for the selected computer type",
-  path: ["type"], // This might need adjustment to show on the correct field
-});
+})
 
-export const headphoneSchema = baseSchema.extend({
-  category: z.literal("Electronics"),
+const rawHeadphoneSchema = baseSchema.extend({
+  category: CategoryEnum,
   subcategory: z.literal("Headphones"),
   brand: HeadphoneBrandEnum,
   type: HeadphoneTypeEnum,
   formFactor: HeadphoneFormFactorEnum,
   connectivity: HeadphoneConnectivityEnum,
-  resistance: z.string().optional(),
+  resistance: z.union([z.string(), z.literal("")]).optional().transform(val => val === "" ? undefined : val),
   color: z.string().min(1, "Color is required"),
   condition: ConditionEnum,
   features: z.array(HeadphoneFeatureEnum).default([]),
 })
 
-export const bagSchema = baseSchema.extend({
-  category: z.literal("Fashion & Accessories"),
+const rawBagSchema = baseSchema.extend({
+  category: CategoryEnum,
   subcategory: z.literal("Bags"),
   brand: BagBrandEnum,
   gender: BagGenderEnum,
@@ -106,8 +101,8 @@ export const bagSchema = baseSchema.extend({
   condition: ConditionEnum,
 })
 
-export const clothingSchema = baseSchema.extend({
-  category: z.literal("Fashion & Accessories"),
+const rawClothingSchema = baseSchema.extend({
+  category: CategoryEnum,
   subcategory: z.literal("Clothing"),
   brand: ClothingBrandEnum,
   type: ClothingTypeEnum,
@@ -116,8 +111,24 @@ export const clothingSchema = baseSchema.extend({
   condition: ConditionEnum,
   madeInKenya: z.boolean().default(false),
   hasWarranty: z.boolean().default(false),
-  warrantyPeriodDays: z.coerce.number().optional(),
-}).refine((data) => {
+  warrantyPeriodDays: z.preprocess((val) => val === "" ? undefined : val, z.coerce.number().optional()),
+})
+
+// Export individual schemas with refinements for use in other places if needed
+export const laptopComputerSchema = rawLaptopSchema.refine((data) => {
+  if (data.type === "LAPTOP" && !data.laptopSubtype) return false;
+  if (data.type === "DESKTOP" && !data.desktopSubtype) return false;
+  if (data.type === "SERVER" && !data.serverSubtype) return false;
+  return true;
+}, {
+  message: "Subtype is required for the selected computer type",
+  path: ["type"],
+});
+
+export const headphoneSchema = rawHeadphoneSchema
+export const bagSchema = rawBagSchema
+
+export const clothingSchema = rawClothingSchema.refine((data) => {
   if (data.hasWarranty && !data.warrantyPeriodDays) return false;
   return true;
 }, {
@@ -125,12 +136,71 @@ export const clothingSchema = baseSchema.extend({
   path: ["warrantyPeriodDays"],
 })
 
-// Union for the main form (using z.union to support refinements)
-export const productSchema = z.union([
-  laptopComputerSchema,
-  headphoneSchema,
-  bagSchema,
-  clothingSchema,
+// Union for the main form (using z.discriminatedUnion for better error handling)
+// We use the RAW schemas here because discriminatedUnion requires ZodObject, not ZodEffects
+const baseUnion = z.discriminatedUnion("subcategory", [
+  rawLaptopSchema,
+  rawHeadphoneSchema,
+  rawBagSchema,
+  rawClothingSchema,
 ])
+
+// Apply refinements to the union
+export const productSchema = baseUnion.superRefine((data, ctx) => {
+  // 1. Consistency Check: Category must match Subcategory
+  if (data.subcategory === "Laptops & Computers" || data.subcategory === "Headphones") {
+    if (data.category !== "Electronics") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Category must be Electronics for this subcategory",
+        path: ["category"],
+      })
+    }
+  }
+  if (data.subcategory === "Bags" || data.subcategory === "Clothing") {
+    if (data.category !== "Fashion & Accessories") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Category must be Fashion & Accessories for this subcategory",
+        path: ["category"],
+      })
+    }
+  }
+
+  // 2. Specific Validations
+  if (data.subcategory === "Laptops & Computers") {
+    if (data.type === "LAPTOP" && !data.laptopSubtype) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Subtype is required for the selected computer type",
+        path: ["laptopSubtype"], 
+      })
+    }
+    if (data.type === "DESKTOP" && !data.desktopSubtype) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Subtype is required for the selected computer type",
+        path: ["desktopSubtype"],
+      })
+    }
+    if (data.type === "SERVER" && !data.serverSubtype) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Subtype is required for the selected computer type",
+        path: ["serverSubtype"],
+      })
+    }
+  }
+
+  if (data.subcategory === "Clothing") {
+    if (data.hasWarranty && !data.warrantyPeriodDays) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Warranty period is required if warranty is available",
+        path: ["warrantyPeriodDays"],
+      })
+    }
+  }
+})
 
 export type ProductFormValues = z.infer<typeof productSchema>

@@ -15,73 +15,90 @@ import {
 } from "~/components/ui/select"
 import { Controller } from "react-hook-form"
 
-const CATEGORY_OPTIONS = [
-  {
-    label: "Laptops & Computers",
-    value: "Laptops & Computers",
-    category: "Electronics",
-  },
-  {
-    label: "Headphones",
-    value: "Headphones",
-    category: "Electronics",
-  },
-  {
-    label: "Bags",
-    value: "Bags",
-    category: "Fashion & Accessories",
-  },
-  {
-    label: "Clothing",
-    value: "Clothing",
-    category: "Fashion & Accessories",
-  },
-]
+const CATEGORIES = [
+  "Electronics",
+  "Fashion & Accessories",
+] as const
+
+const SUBCATEGORIES = {
+  "Electronics": [
+    { label: "Laptops & Computers", value: "Laptops & Computers" },
+    { label: "Headphones", value: "Headphones" },
+  ],
+  "Fashion & Accessories": [
+    { label: "Bags", value: "Bags" },
+    { label: "Clothing", value: "Clothing" },
+  ],
+}
 
 export function CategorySelector() {
   const form = useFormContext()
+  const category = form.watch("category")
 
-  const handleSubcategoryChange = (value: string) => {
-    const selectedOption = CATEGORY_OPTIONS.find((opt) => opt.value === value)
-    if (selectedOption) {
-      form.setValue("category", selectedOption.category)
-      form.setValue("subcategory", value)
-      
-      // Reset specific fields when category changes to avoid validation errors
-      // This is a basic reset, more complex reset logic might be needed in the main form
-      // but this ensures we don't keep invalid data from other schemas
-      // We keep common fields though.
-    }
+  const handleCategoryChange = (value: string) => {
+    form.setValue("category", value)
+    form.setValue("subcategory", undefined) // Reset subcategory when category changes
   }
 
   return (
-    <Controller
-      control={form.control}
-      name="subcategory"
-      render={({ field, fieldState }) => (
-        <Field data-invalid={fieldState.invalid}>
-          <FieldLabel>What are you selling?</FieldLabel>
-          <Select
-            onValueChange={(val) => {
-              field.onChange(val)
-              handleSubcategoryChange(val)
-            }}
-            defaultValue={field.value}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {CATEGORY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-        </Field>
-      )}
-    />
+    <div className="grid gap-6 sm:grid-cols-2">
+      {/* Category Selection */}
+      <Controller
+        control={form.control}
+        name="category"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel>Category</FieldLabel>
+            <Select
+              onValueChange={(val) => {
+                field.onChange(val)
+                handleCategoryChange(val)
+              }}
+              value={field.value || ""}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
+
+      {/* Subcategory Selection */}
+      <Controller
+        control={form.control}
+        name="subcategory"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel>Subcategory</FieldLabel>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || ""}
+              disabled={!category}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={category ? "Select subcategory" : "Select category first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {category && SUBCATEGORIES[category as keyof typeof SUBCATEGORIES]?.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
+    </div>
   )
 }

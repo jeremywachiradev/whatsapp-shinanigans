@@ -39,8 +39,10 @@ export async function createProduct(data: ProductFormValues) {
       condition: validatedData.condition,
     }
 
+    let productId: string | undefined
+
     if (validatedData.subcategory === "Laptops & Computers") {
-      await db.laptopComputer.create({
+      const product = await db.laptopComputer.create({
         data: {
           ...commonFields,
           subcategory: validatedData.subcategory,
@@ -61,8 +63,9 @@ export async function createProduct(data: ProductFormValues) {
           operatingSystem: validatedData.operatingSystem,
         },
       })
+      productId = product.id
     } else if (validatedData.subcategory === "Headphones") {
-      await db.headphone.create({
+      const product = await db.headphone.create({
         data: {
           ...commonFields,
           subcategory: validatedData.subcategory,
@@ -74,8 +77,9 @@ export async function createProduct(data: ProductFormValues) {
           features: validatedData.features,
         },
       })
+      productId = product.id
     } else if (validatedData.subcategory === "Bags") {
-      await db.bag.create({
+      const product = await db.bag.create({
         data: {
           ...commonFields,
           subcategory: validatedData.subcategory,
@@ -84,8 +88,9 @@ export async function createProduct(data: ProductFormValues) {
           type: validatedData.type,
         },
       })
+      productId = product.id
     } else if (validatedData.subcategory === "Clothing") {
-      await db.clothing.create({
+      const product = await db.clothing.create({
         data: {
           ...commonFields,
           subcategory: validatedData.subcategory,
@@ -95,12 +100,14 @@ export async function createProduct(data: ProductFormValues) {
           madeInKenya: validatedData.madeInKenya,
           hasWarranty: validatedData.hasWarranty,
           warrantyPeriod: validatedData.warrantyPeriodDays?.toString(),
+          condition: validatedData.condition,
         },
       })
+      productId = product.id
     }
 
     revalidatePath("/sell")
-    return { success: true, message: "Listing created successfully!" }
+    return { success: true, message: "Listing created successfully!", id: productId }
   } catch (error) {
     console.error("Failed to create listing:", error)
     return { success: false, message: "Failed to create listing. Please try again." }

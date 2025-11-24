@@ -1,5 +1,6 @@
 import "~/styles/globals.css";
 import { Footer } from "~/components/footer";
+import { Toaster } from "~/components/ui/sonner";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
@@ -30,11 +31,12 @@ export default function RootLayout({
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
-            enableSystem
+            enableSystem={false}
             disableTransitionOnChange
           >
             {children}
             <Footer />
+            <Toaster />
           </ThemeProvider>
         </body>
       </html>
