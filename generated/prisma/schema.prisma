@@ -1,0 +1,474 @@
+// Prisma schema for Better Auth
+// learn more: https://better-auth.com/docs/concepts/database
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+// NOTE: When using mysql or sqlserver, uncomment the //@db.Text annotations in model Account below
+// Further reading:
+// https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+
+  @@index([name])
+}
+
+model User {
+  id            String    @id
+  name          String //@db.Text
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String? //@db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  posts         Post[]
+
+  // Product relationships
+  laptopComputers LaptopComputer[]
+  headphones      Headphone[]
+  bags            Bag[]
+  clothing        Clothing[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String? //@db.Text
+  userAgent String? //@db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String //@db.Text
+  providerId            String //@db.Text
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String? //@db.Text
+  refreshToken          String? //@db.Text
+  idToken               String? //@db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String? //@db.Text
+  password              String? //@db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String //@db.Text
+  value      String //@db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+// Enums for common fields
+enum KenyanCounty {
+  BARINGO
+  BOMET
+  BUNGOMA
+  BUSIA
+  ELGEYO_MARAKWET
+  EMBU
+  GARISSA
+  HOMA_BAY
+  ISIOLO
+  KAJIADO
+  KAKAMEGA
+  KERICHO
+  KIAMBU
+  KILIFI
+  KIRINYAGA
+  KISII
+  KISUMU
+  KITUI
+  KWALE
+  LAIKIPIA
+  LAMU
+  MACHAKOS
+  MAKUENI
+  MANDERA
+  MARSABIT
+  MERU
+  MIGORI
+  MOMBASA
+  MURANG_A
+  NAIROBI
+  NAKURU
+  NANDI
+  NAROK
+  NYAMIRA
+  NYANDARUA
+  NYERI
+  SAMBURU
+  SIAYA
+  TAITA_TAVETA
+  TANA_RIVER
+  THARAKA_NITHI
+  TRANS_NZOIA
+  TURKANA
+  UASIN_GISHU
+  VIHIGA
+  WAJIR
+  WEST_POKOT
+}
+
+enum Condition {
+  BRAND_NEW
+  USED
+  REFURBISHED
+  FOR_PARTS_OR_NOT_WORKING
+}
+
+enum ExchangePossible {
+  YES
+  NO
+}
+
+enum OpenToNegotiation {
+  YES
+  NO
+  NOT_SURE
+}
+
+// Laptops and Computers Enums
+enum ComputerType {
+  LAPTOP
+  DESKTOP
+  SERVER
+}
+
+enum LaptopBrand {
+  APPLE
+  ASUS
+  ACER
+  DELL
+  HP
+  LENOVO
+  MSI
+  RAZER
+  SAMSUNG
+  TOSHIBA
+  OTHER
+}
+
+enum LaptopSubtype {
+  GAMING_LAPTOP
+  CHROMEBOOK
+  TRADITIONAL_LAPTOP
+  CONVERTIBLE_LAPTOP
+}
+
+enum DesktopSubtype {
+  ALL_IN_ONE
+  MINI_COMPACT
+  THIN_CLIENT
+  WORKSTATION
+}
+
+enum ServerSubtype {
+  RACK
+  TOWER
+}
+
+enum StorageType {
+  HDD
+  SSD
+  HYBRID
+  EMMC
+  NVME
+}
+
+enum OperatingSystem {
+  WINDOWS_11
+  WINDOWS_10
+  MACOS
+  LINUX_UBUNTU
+  LINUX_OTHER
+  CHROME_OS
+  DOS
+  NO_OS
+  OTHER
+}
+
+// Headphones Enums
+enum HeadphoneBrand {
+  JBL
+  LOGITECH
+  ORAIMO
+  SONY
+  BOSE
+  BEATS
+  SENNHEISER
+  AUDIO_TECHNICA
+  SKULLCANDY
+  APPLE
+  SAMSUNG
+  OTHER
+}
+
+enum HeadphoneType {
+  IN_EAR
+  ON_EAR
+  OVER_EAR
+}
+
+enum HeadphoneFormFactor {
+  EAR_HOOK
+  HEADBAND
+  IN_EAR_ONLY
+  NECKBAND
+}
+
+enum HeadphoneConnectivity {
+  WIRED
+  WIRELESS
+  BOTH
+}
+
+enum HeadphoneFeature {
+  ACTIVE_NOISE_CANCELLATION
+  DETACHABLE_MICROPHONE
+  WATERPROOF
+  WIRELESS_CHARGING
+  FAST_CHARGING
+  VOICE_ASSISTANT
+  FOLDABLE
+  BASS_BOOST
+}
+
+// Bags Enums
+enum BagBrand {
+  ALDO
+  GENERIC
+  HP
+  LOUIS_VUITTON
+  GUCCI
+  PRADA
+  NIKE
+  ADIDAS
+  SAMSONITE
+  AMERICAN_TOURISTER
+  OTHER
+}
+
+enum BagGender {
+  MEN
+  WOMEN
+  UNISEX
+}
+
+enum BagType {
+  HANDBAG
+  BACKPACK
+  SHOULDER_BAG
+  SUITCASE
+  BRIEFCASE
+  MESSENGER_BAG
+  TOTE_BAG
+  CLUTCH
+  DUFFEL_BAG
+  LAPTOP_BAG
+}
+
+// Clothing Enums
+enum ClothingBrand {
+  ADIDAS
+  NIKE
+  PUMA
+  ZARA
+  H_AND_M
+  GUCCI
+  PRADA
+  CALVIN_KLEIN
+  TOMMY_HILFIGER
+  LEVI_S
+  ABC
+  OTHER
+}
+
+enum ClothingType {
+  ACTIVEWEAR
+  DRESSES
+  SHIRTS
+  SUITS
+  JEANS
+  TROUSERS
+  SHORTS
+  SKIRTS
+  JACKETS
+  COATS
+  SWEATERS
+  T_SHIRTS
+  UNDERWEAR
+  SLEEPWEAR
+}
+
+enum ClothingGender {
+  MEN
+  WOMEN
+  UNISEX
+  BOYS
+  GIRLS
+}
+
+// Product Models
+model LaptopComputer {
+  id          String       @id @default(cuid())
+  title       String
+  category    String       @default("Electronics")
+  subcategory String       @default("Laptops & Computers")
+  location    KenyanCounty
+
+  // Computer specific fields
+  type           ComputerType
+  brand          LaptopBrand
+  laptopSubtype  LaptopSubtype?
+  desktopSubtype DesktopSubtype?
+  serverSubtype  ServerSubtype?
+  model          String?
+
+  // Technical specifications
+  condition          Condition
+  processorType      String
+  numberOfCores      Int
+  ram                String // e.g., "8GB", "16GB"
+  storageCapacity    String // e.g., "512GB", "1TB"
+  storageType        StorageType
+  displaySize        String? // Optional, e.g., "15.6 inches"
+  graphicsCard       String?
+  graphicsCardMemory String? // e.g., "4GB", "8GB"
+  operatingSystem    OperatingSystem
+  color              String
+
+  // Common fields
+  exchangePossible  ExchangePossible
+  openToNegotiation OpenToNegotiation
+  description       String            @db.Text
+  price             String // Price in KSH as text field
+  phoneNumber       String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+}
+
+model Headphone {
+  id          String       @id @default(cuid())
+  title       String
+  category    String       @default("Electronics")
+  subcategory String       @default("Headphones")
+  location    KenyanCounty
+
+  // Headphone specific fields
+  brand        HeadphoneBrand
+  type         HeadphoneType
+  formFactor   HeadphoneFormFactor
+  connectivity HeadphoneConnectivity
+  resistance   String? // In ohms, text field
+  color        String
+  condition    Condition
+  features     HeadphoneFeature[] // Array of features
+
+  // Common fields
+  exchangePossible  ExchangePossible
+  openToNegotiation OpenToNegotiation
+  description       String            @db.Text
+  price             String // Price in KSH as text field
+  phoneNumber       String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+}
+
+model Bag {
+  id          String       @id @default(cuid())
+  title       String
+  category    String       @default("Fashion & Accessories")
+  subcategory String       @default("Bags")
+  location    KenyanCounty
+
+  // Bag specific fields
+  brand     BagBrand
+  gender    BagGender
+  type      BagType
+  color     String
+  condition Condition
+
+  // Common fields
+  exchangePossible  ExchangePossible
+  openToNegotiation OpenToNegotiation
+  description       String            @db.Text
+  price             String // Price in KSH as text field
+  phoneNumber       String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+}
+
+model Clothing {
+  id          String       @id @default(cuid())
+  title       String
+  category    String       @default("Fashion & Accessories")
+  subcategory String       @default("Clothing")
+  location    KenyanCounty
+
+  // Clothing specific fields
+  brand          ClothingBrand
+  type           ClothingType
+  gender         ClothingGender
+  color          String
+  condition      Condition
+  madeInKenya    Boolean        @default(false)
+  hasWarranty    Boolean        @default(false)
+  warrantyPeriod String? // Only if hasWarranty is true
+
+  // Common fields
+  exchangePossible  ExchangePossible
+  openToNegotiation OpenToNegotiation
+  description       String            @db.Text
+  price             String // Price in KSH as text field
+  phoneNumber       String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+}
