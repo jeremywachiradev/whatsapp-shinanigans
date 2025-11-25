@@ -3,18 +3,13 @@
  * for Docker builds.
  */
 import "./src/env.js";
-const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
 
 /** @type {import("next").NextConfig} */
 const config = {
+  output: "standalone",
+  serverExternalPackages: ["@prisma/client"],
   eslint: {
     ignoreDuringBuilds: true,
-  },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.plugins = [...config.plugins, new PrismaPlugin()]
-    }
-    return config
   },
   async headers() {
     return [
