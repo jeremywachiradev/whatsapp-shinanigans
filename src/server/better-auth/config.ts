@@ -20,7 +20,7 @@ export const auth = betterAuth({
     google: {
       clientId: env.BETTER_AUTH_GOOGLE_CLIENT_ID,
       clientSecret: env.BETTER_AUTH_GOOGLE_CLIENT_SECRET,
-      redirectURI: "http://localhost:3000/api/auth/callback/google",
+      redirectURI: "https://whatsapp-shinanigans.vercel.app/api/auth/callback/google",
     },
   },
 });
