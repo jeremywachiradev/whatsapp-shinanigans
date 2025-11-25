@@ -37,7 +37,7 @@ export function CategorySelector() {
 
   const handleCategoryChange = (value: string) => {
     form.setValue("category", value)
-    form.setValue("subcategory", undefined) // Reset subcategory when category changes
+    form.setValue("subcategory", "") // Reset subcategory when category changes
   }
 
   return (

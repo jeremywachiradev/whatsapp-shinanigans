@@ -109,7 +109,31 @@ export async function createProduct(data: ProductFormValues) {
     revalidatePath("/sell")
     return { success: true, message: "Listing created successfully!", id: productId }
   } catch (error) {
-    console.error("Failed to create listing:", error)
+    console.error("Failed to create listing - Full error:", error)
+    
+    // Handle Zod validation errors
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as any
+      const firstIssue = zodError.issues?.[0]
+      if (firstIssue) {
+        console.error("Validation error:", firstIssue.path.join('.'), firstIssue.message)
+        return { 
+          success: false, 
+          message: `Validation error: ${firstIssue.path.join('.')}: ${firstIssue.message}` 
+        }
+      }
+    }
+    
+    // Handle Prisma errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      const prismaError = error as any
+      console.error("Database error code:", prismaError.code, "Message:", prismaError.message)
+      return { 
+        success: false, 
+        message: `Database error: ${prismaError.message || 'Unknown database error'}` 
+      }
+    }
+    
     return { success: false, message: "Failed to create listing. Please try again." }
   }
 }

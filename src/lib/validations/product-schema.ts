@@ -44,7 +44,7 @@ export const ClothingGenderEnum = z.enum(["MEN", "WOMEN", "UNISEX", "BOYS", "GIR
 // Base Schema (Common Fields)
 const baseSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(100),
-  location: KenyanCountyEnum,
+  location: z.preprocess((val) => val === "" ? undefined : val, KenyanCountyEnum),
   exchangePossible: ExchangePossibleEnum,
   openToNegotiation: OpenToNegotiationEnum,
   description: z.string().min(20, "Description must be at least 20 characters"),
@@ -57,15 +57,15 @@ export const CategoryEnum = z.enum(["Electronics", "Fashion & Accessories"])
 
 // Category Specific Schemas (Raw Objects for Discriminated Union)
 const rawLaptopSchema = baseSchema.extend({
-  category: CategoryEnum,
+  category: z.preprocess((val) => val === "" ? undefined : val, CategoryEnum),
   subcategory: z.literal("Laptops & Computers"),
-  type: ComputerTypeEnum,
-  brand: LaptopBrandEnum,
+  type: z.preprocess((val) => val === "" ? undefined : val, ComputerTypeEnum),
+  brand: z.preprocess((val) => val === "" ? undefined : val, LaptopBrandEnum),
   laptopSubtype: z.union([LaptopSubtypeEnum, z.literal("")]).optional(),
   desktopSubtype: z.union([DesktopSubtypeEnum, z.literal("")]).optional(),
   serverSubtype: z.union([ServerSubtypeEnum, z.literal("")]).optional(),
   model: z.string().optional(),
-  condition: ConditionEnum,
+  condition: z.preprocess((val) => val === "" ? undefined : val, ConditionEnum),
   processorType: z.string().min(1, "Processor type is required"),
   numberOfCores: z.coerce.number().min(1),
   ram: z.string().min(1, "RAM is required"),
@@ -79,36 +79,36 @@ const rawLaptopSchema = baseSchema.extend({
 })
 
 const rawHeadphoneSchema = baseSchema.extend({
-  category: CategoryEnum,
+  category: z.preprocess((val) => val === "" ? undefined : val, CategoryEnum),
   subcategory: z.literal("Headphones"),
-  brand: HeadphoneBrandEnum,
-  type: HeadphoneTypeEnum,
-  formFactor: HeadphoneFormFactorEnum,
-  connectivity: HeadphoneConnectivityEnum,
+  brand: z.preprocess((val) => val === "" ? undefined : val, HeadphoneBrandEnum),
+  type: z.preprocess((val) => val === "" ? undefined : val, HeadphoneTypeEnum),
+  formFactor: z.preprocess((val) => val === "" ? undefined : val, HeadphoneFormFactorEnum),
+  connectivity: z.preprocess((val) => val === "" ? undefined : val, HeadphoneConnectivityEnum),
   resistance: z.union([z.string(), z.literal("")]).optional(),
   color: z.string().min(1, "Color is required"),
-  condition: ConditionEnum,
+  condition: z.preprocess((val) => val === "" ? undefined : val, ConditionEnum),
   features: z.array(HeadphoneFeatureEnum).default([]),
 })
 
 const rawBagSchema = baseSchema.extend({
-  category: CategoryEnum,
+  category: z.preprocess((val) => val === "" ? undefined : val, CategoryEnum),
   subcategory: z.literal("Bags"),
-  brand: BagBrandEnum,
-  gender: BagGenderEnum,
-  type: BagTypeEnum,
+  brand: z.preprocess((val) => val === "" ? undefined : val, BagBrandEnum),
+  gender: z.preprocess((val) => val === "" ? undefined : val, BagGenderEnum),
+  type: z.preprocess((val) => val === "" ? undefined : val, BagTypeEnum),
   color: z.string().min(1, "Color is required"),
-  condition: ConditionEnum,
+  condition: z.preprocess((val) => val === "" ? undefined : val, ConditionEnum),
 })
 
 const rawClothingSchema = baseSchema.extend({
-  category: CategoryEnum,
+  category: z.preprocess((val) => val === "" ? undefined : val, CategoryEnum),
   subcategory: z.literal("Clothing"),
-  brand: ClothingBrandEnum,
-  type: ClothingTypeEnum,
-  gender: ClothingGenderEnum,
+  brand: z.preprocess((val) => val === "" ? undefined : val, ClothingBrandEnum),
+  type: z.preprocess((val) => val === "" ? undefined : val, ClothingTypeEnum),
+  gender: z.preprocess((val) => val === "" ? undefined : val, ClothingGenderEnum),
   color: z.string().min(1, "Color is required"),
-  condition: ConditionEnum,
+  condition: z.preprocess((val) => val === "" ? undefined : val, ConditionEnum),
   madeInKenya: z.boolean().default(false),
   hasWarranty: z.boolean().default(false),
   warrantyPeriodDays: z.preprocess((val) => val === "" ? undefined : val, z.coerce.number().optional()),

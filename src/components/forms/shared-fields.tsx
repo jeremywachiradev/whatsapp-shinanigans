@@ -118,7 +118,13 @@ export function SharedFields() {
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel>Phone Number</FieldLabel>
             <InputGroup>
-              <InputGroupInput {...field} placeholder="e.g. 0712345678" />
+              <InputGroupInput 
+                {...field} 
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="e.g. 0712345678" 
+              />
             </InputGroup>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
