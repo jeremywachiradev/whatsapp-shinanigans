@@ -3,7 +3,7 @@
  * for Docker builds.
  */
 import "./src/env.js";
-import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin';
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin');
 
 /** @type {import("next").NextConfig} */
 const config = {
