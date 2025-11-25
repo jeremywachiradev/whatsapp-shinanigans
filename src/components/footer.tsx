@@ -19,7 +19,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="underline transition-colors hover:text-neutral-500 dark:hover:text-neutral-400"
             >
-              github 
+              github
             </a>
           </p>
           <p className="mt-4 text-sm font-light text-neutral-500 dark:text-neutral-300 md:text-base">
@@ -30,9 +30,11 @@ export function Footer() {
             If anyone has any questions they should google it first then
             ikikulemea text in that whatsapp group.
           </p>
-          <p className="mt-4 text-sm font-light text-neutral-500 dark:text-neutral-300 md:text-base">
-  Go check out this footer in a bigger screen, trust me 😂
+          
+          <p className="mt-4 text-sm font-light text-neutral-500 dark:text-neutral-300 md:hidden">
+            Go check out this footer in a bigger screen, trust me 😂
           </p>
+          
         </div>
       </WavyBackground>
     </div>
